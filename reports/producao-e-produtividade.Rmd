@@ -190,6 +190,18 @@ Produza abaixo o modelo e um texto que comente (i) o modelo, tal como os que fiz
 
 
 ```{r}
+library(GGally)
+```
+
+
+```{r}
+ggpairs(cacc %>% select(produtividade, mestrados, doutorados, mestrados_pprof, doutorados_pprof)) 
+```
+
+
+
+
+```{r}
 cacc_aug_prod %>% 
   ggplot(aes(x = produtividade, y = mestrados)) + 
   geom_point() 
@@ -213,12 +225,16 @@ cacc_aug_prod %>%
 
 
 ```{r}
-modelo_prod = lm(produtividade ~ mestrados * doutorados * mestrados_pprof * doutorados_pprof * tem_doutorado, 
+modelo_prod = lm(produtividade ~ mestrados + doutorados  + tem_doutorado, 
                  data = cacc)
 
 tidy(modelo_prod, conf.int = TRUE, conf.level = 0.95)
+```
+
+```{r}
 glance(modelo_prod)
 ```
+
 
 ```{r}
 cacc_aug_prod <- cacc %>% 
