@@ -3,6 +3,7 @@ title: "Regressão linear na prática"
 output:
   html_document:
     df_print: paged
+author: Hugo Gabriel
 ---
 
 ```{r warning=FALSE, echo=FALSE}
@@ -47,6 +48,7 @@ cacc = cacc_tudo %>%
     produtividade = producao / docentes,
     mestrados = Dissertacoes,
     doutorados = Teses,
+    colaboradores = `Docentes colaboradores`,
     tem_doutorado = tolower(`Tem doutorado`) == "sim",
     mestrados_pprof = mestrados / docentes,
     doutorados_pprof = doutorados / docentes
@@ -112,25 +114,9 @@ cacc_augmented %>%
 
 Se considerarmos que temos apenas uma amostra de todos os programas de pós em CC no Brasil, o que podemos inferir a partir desse modelo sobre a relação entre número de docentes permanentes e produção de artigos em programas de pós? 
 
-Normalmente reportaríamos o resultado da seguinte maneira, substituindo VarIndepX e todos os x's e y's pelos nomes e valores de fato:
+> Regressão foi utilizada para analisar se a proporção de docentes tem uma associação significativa com a produção dos cursos de pós-graduação nos cursos ligados à computação. Os resultados da regressão indicam que um modelo com os 1 preditor no formato produção = 4.81 * docentes - 41.27 explica 81,45% da variância da variável de resposta. Docentes tem uma relação significativa com o erro (b = [4.27; 5.36], IC com 95%). O aumento de 1 unidade de docentes produz uma mudança de 4.81 na produção.
 
-> Regressão múltipla foi utilizada para analisar se VarIndep1 e VarIndep2 tem uma associação significativa com VarDep. Os resultados da regressão indicam que um modelo com os 2 preditores no formato VarDep = XXX.VarIndep1 + YYY.VarIndep2 explicam XX,XX% da variância da variável de resposta (R2 = XX,XX). VarIndep1, medida como/em [unidade ou o que é o 0 e o que é 1] tem uma relação significativa com o erro (b = [yy,yy; zz,zz], IC com 95%), assim como VarIndep2 medida como [unidade ou o que é o 0 e o que é 1] (b = [yy,yy; zz,zz], IC com 95%). O aumento de 1 unidade de VarIndep1 produz uma mudança de xxx em VarDep, enquanto um aumento...
-
-Produza aqui a sua versão desse texto, portanto:
-
------
-
-*SUBSTITUA ESSE TEXTO*
-
------
-
-Dito isso, o que significa a relação que você encontrou na prática para entendermos os programas de pós graduação no Brasil? E algum palpite de por que a relação que encontramos é forte?
-
------
-
-*SUBSTITUA ESSE TEXTO PELA SUA DISCUSSÃO DOS RESULTADOS*
-
------
+Com isso, podemos compreender que os docentes tem uma relação forte com a produção dos cursos de graduação. Esta relação já é esperada, através da intuição de que mais docentes são capazes de produzir mais trabalhos.
 
 ## Mais fatores
 
@@ -175,11 +161,10 @@ para_plotar_modelo %>%
 
 Considerando agora esses três fatores, o que podemos dizer sobre como cada um deles se relaciona com a produção de um programa de pós em CC? E sobre o modelo? Ele explica mais que o modelo 1? 
 
------
+> Regressão múltipla foi utilizada para analisar se a proporção de docentes, o número de dissertações de mestrado e o número de teses de doutorado têm uma associação significativa com a produção dos cursos de pós-graduação nos cursos ligados à computação. Os resultados da regressão indicam que um modelo com os 3 preditores no formato produção = 3.5*docentes -0.19\*mestrado + 1.0007\*doutorados - 14.37 explica 87.07% da variância da variável de resposta. Docentes, tem uma relação significativa com o erro (b = [2.58; 4.42], IC com 95%); Mestrados, tem uma relação significativa com o erro (b = [-0.36; -0.03], IC com 95%); Doutorados, também tem uma relação significativa com o erro (b = [0.63; 1.37], IC com 95%). O aumento de 1 unidade de docentes produz uma mudança de 3.5 na produção, já uma mudança de 1 unidade em mestrado produz uma mudança de -0.19 na produção, já a mudança em doutorados provoca quase nenhuma mudança (1.0007).
 
-**EXPLICAÇÃO**: *Substitua esse texto por texto feito tal qual o que usamos com uma variável*
 
------
+Percebemos que este modelo é capaz de explicar melhor a variação na produção do que o modelo que possui apenas uma variável. Como esperado, docentes possiu a associação mais forte com a variável, no entanto, é curioso que o número de teses e dissertações tenha uma influência tão baixa, até mesmo negativa (no caso das teses), isto indica que produtividade, da forma é calculada atualmente,  não parece estar associada aos trabalhos finais dos mestrandos e doutorandos dos programas de pós-graduação.
 
 
 ## Agora produtividade 
@@ -195,37 +180,28 @@ library(GGally)
 
 
 ```{r}
-ggpairs(cacc %>% select(produtividade, mestrados, doutorados, mestrados_pprof, doutorados_pprof)) 
+ggpairs(cacc %>% select(produtividade, mestrados, doutorados, mestrados_pprof, doutorados_pprof, )) 
 ```
 
-
-
-
 ```{r}
-cacc_aug_prod %>% 
+cacc %>% 
   ggplot(aes(x = produtividade, y = mestrados)) + 
-  geom_point() 
+  geom_point(color=paleta[3]) 
 
-cacc_aug_prod %>% 
+cacc %>% 
   ggplot(aes(x = produtividade, y = doutorados)) + 
-  geom_point()
+  geom_point(color=paleta[4])
 
-
-cacc_aug_prod %>% 
-  ggplot(aes(x = produtividade, y = mestrados_pprof)) + 
-  geom_point()
-
-
-cacc_aug_prod %>% 
-  ggplot(aes(x = produtividade, y = doutorados_pprof)) + 
-  geom_point() 
+cacc %>% 
+  ggplot(aes(x = produtividade, y = colaboradores)) + 
+  geom_point(color=paleta[5])
 ```
 
 
 
 
 ```{r}
-modelo_prod = lm(produtividade ~ mestrados + doutorados  + tem_doutorado, 
+modelo_prod = lm(produtividade ~ mestrados + doutorados + colaboradores, 
                  data = cacc)
 
 tidy(modelo_prod, conf.int = TRUE, conf.level = 0.95)
@@ -236,22 +212,9 @@ glance(modelo_prod)
 ```
 
 
-```{r}
-cacc_aug_prod <- cacc %>% 
-  add_predictions(modelo_prod) 
-```
+> Regressão múltipla foi utilizada para analisar se a o número de dissertações de mestrado e o número de teses de doutorado e a proporção de docentes colaboradores têm uma associação significativa com a produtividade dos cursos de pós-graduação nos cursos ligados à computação. Os resultados da regressão indicam que um modelo com os 3 preditores no formato produtividade = -0.0002\*mestrados + 0.03\*doutorados -0.07*colaboradores + 2.21 explica 38.67% da variância da variável de resposta. Mestrados, não tem uma relação significativa com o erro (b = [-0.007; 0.007], IC com 95%); Doutorados, tem uma relação significativa com o erro (b = [0.016; 0.044], IC com 95%); Colaboradores, também não tem uma relação significativa com o erro (b = [-0.14; 0.005], IC com 95%). O aumento de 1 unidade em doutorados produz uma mudança de 0.03 na produtividade. Quanto as demais variáveis são podemos fazer tais declaração pois não podemos assegurar a relação.
 
-
-```{r}
-cacc_aug_prod %>% 
-  ggplot(aes(x = produtividade, y = pred)) + 
-  geom_point() +
-  geom_abline(intercept = 0)
-```
-
-
-
-
+Neste caso, vemos que o modelo é capaz de capturar pouco do comportamento da variável de interesse, produtividade. Uma explicação plausível para tal situação é que o cálculo da produtividade não leva em consideração estas variáveis, ou seja, a produção de teses e dissertações e os professores colaboradores de um curso de pós-graduação não são fatores descritivos/determinantes da produtividade deste.
 
 
 
