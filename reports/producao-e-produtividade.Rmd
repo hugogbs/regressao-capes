@@ -1,6 +1,8 @@
 ---
 title: "Regressão linear na prática"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 ```{r warning=FALSE, echo=FALSE}
@@ -185,3 +187,61 @@ Considerando agora esses três fatores, o que podemos dizer sobre como cada um d
 Diferente de medirmos produção (total produzido), é medirmos produtividade (produzido / utilizado). Abaixo focaremos nessa análise. Para isso crie um modelo que investiga como um conjunto de fatores que você julga que são relevantes se relacionam com a produtividade dos programas. Crie um modelo que avalie como _pelo menos 3 fatores_ se relacionam com a produtividade de um programa. Pode reutilizar fatores que já definimos e analizamos para produção. Mas cuidado para não incluir fatores que sejam função linear de outros já incluídos (ex: incluir A, B e um tercero C=A+B)
 
 Produza abaixo o modelo e um texto que comente (i) o modelo, tal como os que fizemos antes, e (ii) as implicações - o que aprendemos sobre como funcionam programas de pós no brasil?.
+
+
+```{r}
+cacc_aug_prod %>% 
+  ggplot(aes(x = produtividade, y = mestrados)) + 
+  geom_point() 
+
+cacc_aug_prod %>% 
+  ggplot(aes(x = produtividade, y = doutorados)) + 
+  geom_point()
+
+
+cacc_aug_prod %>% 
+  ggplot(aes(x = produtividade, y = mestrados_pprof)) + 
+  geom_point()
+
+
+cacc_aug_prod %>% 
+  ggplot(aes(x = produtividade, y = doutorados_pprof)) + 
+  geom_point() 
+```
+
+
+
+
+```{r}
+modelo_prod = lm(produtividade ~ mestrados * doutorados * mestrados_pprof * doutorados_pprof * tem_doutorado, 
+                 data = cacc)
+
+tidy(modelo_prod, conf.int = TRUE, conf.level = 0.95)
+glance(modelo_prod)
+```
+
+```{r}
+cacc_aug_prod <- cacc %>% 
+  add_predictions(modelo_prod) 
+```
+
+
+```{r}
+cacc_aug_prod %>% 
+  ggplot(aes(x = produtividade, y = pred)) + 
+  geom_point() +
+  geom_abline(intercept = 0)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
